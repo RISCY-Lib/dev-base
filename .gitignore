@@ -1,0 +1,6 @@
+# Ignore the Run-Dir
+run/*
+!run/README.md
+
+# Ignore IDEs
+.vscode/
