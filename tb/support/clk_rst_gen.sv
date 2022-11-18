@@ -1,5 +1,5 @@
 /**************************************************************************
- * Test-bench for top-level design                                        *
+ * Clock Generation module                                                *
  * Copyright (C) 2022, Benjamin Davis                                     *
  *                                                                        *
  * This program is free software: you can redistribute it and/or modify   *
@@ -16,38 +16,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>. *
  **************************************************************************/
 
-module tb ();
+`timescale 1ns/1ps
 
-  import uvm_pkg::*;
-  `include uvm_macros.svh;
+module clk_rst_gen #(
+  parameter int CLK_PERIOD_NS = 10,
+  parameter int RESET_LENGTH = 3
+) (
+  // Clock/Reset Signals
+  output logic clk,
+  output logic rst
+);
 
-  logic clk;
-  logic rst_low;
-
-  clk_rst_gen #(
-    .CLK_PERIOD_NS (5),
-    .RESET_LENGTH  (5)
-  ) clk_rst_gen_i (
-    .clk      (clk),
-    .reset_low(rst_low)
-  );
-
-  dut_if dut_if_inst ();
-
-  dut #(
-    .WIDTH(8)
-  ) inst_dut (
-    .clk_in     (clk),
-    .rst_low_in (rst_low),
-
-    .sw_in   (bfm.sw),
-    .led_out (bfm.led)
-  );
-
-  // Kick-off the UVM test
   initial begin
-    uvm_config_db #(virtual interface dut_if)::set (null, "*", "dut_if", dut_if_inst)
-    run_test();
+    clk_out = '0;
+    forever begin
+      #(CLK_PERIOD_NS) clk_out <= ~clk_out;
+    end
+  end
+
+  initial begin
+    rst_low_out <= 1'b0;
+    repeat(RESET_LENGTH) begin
+      @(posedge clk_out);
+    end
+    rst_low_out <= 1'b1;
   end
 
 endmodule

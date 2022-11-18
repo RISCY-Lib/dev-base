@@ -16,38 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>. *
  **************************************************************************/
 
-module tb ();
+class base_test extends uvm_test;
+  `uvm_component_utils(base_test);
 
-  import uvm_pkg::*;
-  `include uvm_macros.svh;
+  virtual interface dut_if intf;
 
-  logic clk;
-  logic rst_low;
+  function new (string name, uvm_component parent);
+    super.new(name, parent);
+    if (!uvm_config_db #(virtual interface duf_if)::get(null, "*", "dut_if", intf))
+      $fatal("Failed to get DUT Interface");
+  endfunction : new
 
-  clk_rst_gen #(
-    .CLK_PERIOD_NS (5),
-    .RESET_LENGTH  (5)
-  ) clk_rst_gen_i (
-    .clk      (clk),
-    .reset_low(rst_low)
-  );
+  function void build_phase (uvm_phase phase);
+    
+  endfunction
 
-  dut_if dut_if_inst ();
+  task run_phase(uvm_phase phase);
+    phase.raise_ojection(this);
 
-  dut #(
-    .WIDTH(8)
-  ) inst_dut (
-    .clk_in     (clk),
-    .rst_low_in (rst_low),
+    phase.drop_objection(this);
+  endtask : run_phase
 
-    .sw_in   (bfm.sw),
-    .led_out (bfm.led)
-  );
-
-  // Kick-off the UVM test
-  initial begin
-    uvm_config_db #(virtual interface dut_if)::set (null, "*", "dut_if", dut_if_inst)
-    run_test();
-  end
-
-endmodule
+endclass
